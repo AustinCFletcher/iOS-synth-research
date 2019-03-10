@@ -13,6 +13,9 @@ class ViewController: UIViewController {
     
     // MARK: - Properties
     private let oscillator = AKOscillator()
+    private var soundSource: AKNode = AKOscillator()
+    private var env = AKAmplitudeEnvelope(AKOscillator())
+    
     
     // MARK: - Actions
     
@@ -27,9 +30,13 @@ class ViewController: UIViewController {
     
     @IBAction func playTouchEnded(_ sender: Any) {
         oscillator.stop()
+//        toggleOscillator()
     }
     
-    
+    private func toggleOscillator() {
+        if oscillator.isStarted { oscillator.stop() }
+        else { oscillator.start() }
+    }
     
     // MARK: - View lifecycle
 
@@ -37,10 +44,26 @@ class ViewController: UIViewController {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
         
-        oscillator.amplitude = 0.3
-        AudioKit.output = oscillator
+        configureOscillator()
+        
+        env = applyEnvelope(osc: oscillator)
+        AudioKit.output = env
         
         try? AudioKit.start()
+    }
+    
+    private func configureOscillator() {
+        oscillator.amplitude = 0.3
+        oscillator.rampDuration = 0.6
+    }
+    
+    private func applyEnvelope(osc: AKOscillator) -> AKAmplitudeEnvelope {
+        let envelope = AKAmplitudeEnvelope(osc)
+        envelope.attackDuration = 0.1
+        envelope.decayDuration = 0.1
+        envelope.sustainLevel = 0.1
+        envelope.releaseDuration = 0.3
+        return envelope
     }
 
 
